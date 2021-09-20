@@ -1,0 +1,13 @@
+{
+  "name": "sgx_node",
+  "version": "1.0.0",
+  "main": "server.js",
+  "repository": "https://Ali-1234@bitbucket.org/ternoa/sgx_node.git",
+  "author": "Ali Hassan <ah1144487@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.17.1",
+    "ip": "^1.1.5"
+  }
+}

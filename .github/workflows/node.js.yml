@@ -28,3 +28,19 @@ jobs:
       with:
         files: ./
         dest: node-sgx.zip
+        
+    - name: Configure AWS credentials from Test account
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.SW_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.SW_SECRET_ACCESS_KEY }}
+        aws-region: 'https://s3.fr-par.scw.cloud'
+
+    - name: Copy Zip toScaleway Bucket 
+      run: |
+        aws s3 sync node-sgx.zip s3://ternoa/node_sgx/latest.zip
+
+    - name: Copy files to the test website with the AWS CLI
+      run: |
+        aws s3 sync node-sgx.zip s3://ternoa/node_sgx/${{ github.sha }}.zip
+

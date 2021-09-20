@@ -39,8 +39,8 @@ jobs:
         
     - name: Copy Zip to Scaleway Bucket  latest.zip
       run: |
-        s3cmd sync node-sgx.zip s3://ternoa/sgx-node/latest.zip --host https://s3.fr-par.scw.cloud --host-bucket https://s3.fr-par.scw.cloud
+        s3cmd sync node-sgx.zip s3://ternoa/sgx-node/${GITHUB_REF##*/}/latest.zip --host https://s3.fr-par.scw.cloud --host-bucket https://s3.fr-par.scw.cloud
 
     - name: Copy Zip to Scaleway Bucket  ${{ github.sha }}.zip
       run: |
-        s3cmd sync node-sgx.zip s3://ternoa/sgx-node/${{ github.sha }}.zip --host https://s3.fr-par.scw.cloud --host-bucket https://s3.fr-par.scw.cloud
+        s3cmd sync node-sgx.zip s3://ternoa/sgx-node/${GITHUB_REF##*/}/${{ github.sha }}.zip --host https://s3.fr-par.scw.cloud --host-bucket https://s3.fr-par.scw.cloud

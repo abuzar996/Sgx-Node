@@ -34,14 +34,13 @@ jobs:
       with:
         aws-access-key-id: ${{ secrets.SW_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.SW_SECRET_ACCESS_KEY }}
-        aws-region: 'fr-par' 
 
     - name: Copy Zip to Scaleway Bucket  latest.zip
       run: |
-        aws s3 sync node-sgx.zip s3://ternoa/node_sgx/latest.zip --endpoint-url https://s3.fr-par.scw.cloud
+        aws s3 sync node-sgx.zip s3://ternoa/node_sgx/latest.zip --endpoint-url https://s3.fr-par.scw.cloud --region fr-par
 
     - name: Copy Zip to Scaleway Bucket  ${{ github.sha }}.zip
       run: |
-        aws s3 sync node-sgx.zip s3://ternoa/node_sgx/${{ github.sha }}.zip --endpoint-url https://s3.fr-par.scw.cloud
+        aws s3 sync node-sgx.zip s3://ternoa/node_sgx/${{ github.sha }}.zip --endpoint-url https://s3.fr-par.scw.cloud --region fr-par
 
 

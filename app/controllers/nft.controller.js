@@ -1,29 +1,108 @@
 const fs = require('fs');
 const path = require('path');
+const getChainApiInstance = require('../polka/index.js');
+const {
+    signatureVerify,
+    decodeAddress,
+} = require('@polkadot/util-crypto');
 
-exports.writeNft = async (req, res) => {
-    const { nftId, field } = req.body;
+const {
+    u8aToHex
+} = require('@polkadot/util');
+
+const dirPath = './nfts/';
+
+async function getNFTOwner(nftId) {
+    try {
+        const chainApi = await getChainApiInstance();
+        const nftData = await chainApi.query.nfts.data(nftId);
+        const owner = String(nftData.owner);
+        console.log('owenr:', owner);
+        return owner
+    } catch (err) {
+        console.log('getNFTOwner err: ', err)
+        return false;
+    }
+}
+
+async function validateNFTOwnership(nftId, requestAddress) {
+    const nftOwner = await getNFTOwner(nftId)
+    if (nftOwner && nftOwner === requestAddress)
+        return true;
+    return false;
+}
+
+const isValidSignature = (
+    signedMessage, signature, address) => {
+    const publicKey = decodeAddress(address);
+    const hexPublicKey = u8aToHex(publicKey);
+    return signatureVerify(signedMessage, signature, hexPublicKey).isValid;
+};
+
+async function validateAndGetData(data, signature) {
+    const dataContent = data.split('_');
+    const nftId = dataContent[0]
+    const requesterAddress = dataContent[1];
+
+    const isValid = isValidSignature(data, signature, requesterAddress);
+    if (isValid) {
+        const isValidOwner = await validateNFTOwnership(nftId, requesterAddress)
+        if (isValidOwner) {
+            let returnData = {
+                nftId
+            }
+            if (dataContent[2]) {
+                returnData.shamir = dataContent[2]
+            }
+            return returnData
+        } else {
+            throw new Error('invalid owner')
+        }
+    } else {
+        //invalid signature
+        throw new Error('invalid signature')
+    }
+}
+
+exports.saveShamir = async (req, res) => {
+    const { signature, data } = req.body;
 
     try {
-        let filePath = path.join(__dirname, `../nft/`);
-
-        fs.writeFileSync(filePath + `${nftId}.txt`, field);
-
-        res.status(200).send('Added Succesfully')
+        const { nftId, shamir } = await validateAndGetData(data, signature);
+        if (shamir) {
+            fs.writeFileSync(dirPath + `${nftId}.txt`, shamir);
+            res.status(200).send(`${nftId}`)
+        } else {
+            res.status(400).send('shamir not found');
+        }
     } catch (err) {
-        res.status(505).send(err.message);
+        if (err.message == 'invalid owner')
+            res.status(423).send(err.message);
+        else if (err.message == 'invalid signature')
+            res.status(401).send(err.message);
+        else
+            res.status(500).send(err.message);
     }
 };
 
-exports.readNft = async (req, res) => {
+exports.getShamir = async (req, res) => {
+    const { signature, data } = req.body;
     try {
-        let filePath = path.join(__dirname, `../nft/`);
+        const { nftId, shamir } = await validateAndGetData(data, signature);
+        if (shamir == 'getData') {
+            const result = fs.readFileSync(dirPath + `${nftId}.txt`);
 
-        const result = fs.readFileSync(filePath + `${req.query.nftId}.txt`);
+            res.status(200).json({ shamir: result.toString() });
+        } else {
+            res.status(423).send('invalid request parameter');
+        }
 
-        res.status(200).send(result.toString());
     } catch (err) {
-        console.log(err)
-        res.status(505).send(err.message);
+        if (err.message == 'invalid owner')
+            res.status(423).send(err.message);
+        else if (err.message == 'invalid signature')
+            res.status(401).send(err.message);
+        else
+            res.status(503).send(err.message);
     }
 };

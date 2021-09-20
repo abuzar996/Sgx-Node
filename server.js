@@ -1,13 +1,16 @@
 const express = require('express');
 const cors = require('cors');
-
+const fs = require('fs');
 const app = express();
 
-require('./app/scripts/ip.script')();
+require('./app/scripts/initialize.script')();
 
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+if (!fs.existsSync('./nfts'))
+    fs.mkdirSync('./nfts');
 
 app.get('/', (req, res) => {
     res.status(200).send('Api is running');

@@ -10,12 +10,12 @@ module.exports = function(app) {
   });
 
   app.post(
-    '/api/nft/writeNft',
-    controller.writeNft
+    '/api/nft/saveShamir',
+    controller.saveShamir
   );
   
-  app.get(
-    '/api/nft/readNft',
-    controller.readNft
+  app.post(
+    '/api/nft/getShamir',
+    controller.getShamir
   );
 };

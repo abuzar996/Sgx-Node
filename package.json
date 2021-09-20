@@ -6,8 +6,10 @@
   "author": "Ali Hassan <ah1144487@gmail.com>",
   "license": "MIT",
   "dependencies": {
+    "@polkadot/api": "^5.9.1",
     "cors": "^2.8.5",
     "express": "^4.17.1",
-    "ip": "^1.1.5"
+    "minimist": "^1.2.5",
+    "polkadot": "^1.0.0"
   }
 }

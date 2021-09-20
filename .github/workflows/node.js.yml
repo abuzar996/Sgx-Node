@@ -34,7 +34,7 @@ jobs:
       with:
         aws-access-key-id: ${{ secrets.SW_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.SW_SECRET_ACCESS_KEY }}
-        region: fr-par
+        aws-region: fr-par
           
     - name: Copy Zip to Scaleway Bucket  latest.zip
       run: |

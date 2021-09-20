@@ -30,16 +30,17 @@ jobs:
         dest: node-sgx.zip
         
     - name: Configure AWS credentials from Test account
-      uses: aws-actions/configure-aws-credentials@v1
+      uses: s3-actions/s3cmd@v0
       with:
-        aws-access-key-id: ${{ secrets.SW_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.SW_SECRET_ACCESS_KEY }}
-        aws-region: us-east-1
+        provider: "aws"
+        access_key: ${{ secrets.SW_ACCESS_KEY_ID }}
+        secret_key: ${{ secrets.SW_SECRET_ACCESS_KEY }}
+        region: fr-par
         
     - name: Copy Zip to Scaleway Bucket  latest.zip
       run: |
-        aws s3 sync node-sgx.zip s3://ternoa/node_sgx/latest.zip --endpoint-url https://s3.fr-par.scw.cloud --region fr-par 
+        s3cmd sync node-sgx.zip s3://ternoa/node_sgx/latest.zip --host https://s3.fr-par.scw.cloud
 
     - name: Copy Zip to Scaleway Bucket  ${{ github.sha }}.zip
       run: |
-        aws s3 sync node-sgx.zip s3://ternoa/node_sgx/${{ github.sha }}.zip --endpoint-url https://s3.fr-par.scw.cloud --region fr-par
+        s3cmd sync node-sgx.zip s3://ternoa/node_sgx/${{ github.sha }}.zip --host https://s3.fr-par.scw.cloud

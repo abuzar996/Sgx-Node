@@ -1,6 +1,5 @@
 const fs = require('fs');
-const path = require('path');
-const getChainApiInstance = require('../polka/index.js');
+const { getChainApiInstance, safeDisconnectChainApi }  = require('../polka/index.js');
 const {
     signatureVerify,
     decodeAddress,
@@ -16,6 +15,7 @@ async function getNFTOwner(nftId) {
     try {
         const chainApi = await getChainApiInstance();
         const nftData = await chainApi.query.nfts.data(nftId);
+        safeDisconnectChainApi();
         const owner = String(nftData.owner);
         console.log('owenr:', owner);
         return owner
@@ -66,11 +66,17 @@ async function validateAndGetData(data, signature) {
 
 exports.saveShamir = async (req, res) => {
     const { signature, data } = req.body;
+    const timestamp = new Date().getTime();
+    console.time(`saveShamir_${timestamp}`);
 
     try {
+        console.time(`saveShamir_${timestamp}_validateAndGetData`);
         const { nftId, shamir } = await validateAndGetData(data, signature);
+        console.timeEnd(`saveShamir_${timestamp}_validateAndGetData`);
         if (shamir) {
+            console.time(`saveShamir_${timestamp}_writeFileSync`);
             fs.writeFileSync(dirPath + `${nftId}.txt`, shamir);
+            console.timeEnd(`saveShamir_${timestamp}_writeFileSync`);
             res.status(200).send(`${nftId}`)
         } else {
             res.status(400).send('shamir not found');
@@ -82,6 +88,9 @@ exports.saveShamir = async (req, res) => {
             res.status(401).send(err.message);
         else
             res.status(500).send(err.message);
+    }
+    finally {
+        console.timeEnd(`saveShamir_${timestamp}`);
     }
 };
 

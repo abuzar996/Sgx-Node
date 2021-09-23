@@ -8,13 +8,13 @@ const {
 require('dotenv').config();
 
 let api = null;
-const provider = new WsProvider(process.env.BLOCK_CHAIN_URL);
 console.log('BLOCK_CHAIN_URL', process.env.BLOCK_CHAIN_URL)
 async function getChainApiInstance() {
 
     if (api && api.isConnected) {
         return api;
     } else {
+        const provider = new WsProvider(process.env.BLOCK_CHAIN_URL);
         api = await ApiPromise.create({
             provider,
             types
@@ -22,9 +22,10 @@ async function getChainApiInstance() {
         return api;
     }
 };
-const safeDisconnectChainApi = () => {
+const safeDisconnectChainApi = async () => {
     if (api && api.isConnected) {
-        api.disconnect();
+        await api.disconnect();
+        api=null;
     }
 };
 module.exports = {

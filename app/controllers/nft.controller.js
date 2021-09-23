@@ -1,5 +1,5 @@
 const fs = require('fs');
-const { getChainApiInstance, safeDisconnectChainApi }  = require('../polka/index.js');
+const { getChainApiInstance, safeDisconnectChainApi } = require('../polka/index.js');
 const {
     signatureVerify,
     decodeAddress,
@@ -17,7 +17,7 @@ async function getNFTOwner(nftId) {
         const nftData = await chainApi.query.nfts.data(nftId);
         // safeDisconnectChainApi(); //no need to disconnect, we can afford 8 socket connection to chain all the time to increase speed of operations
         const owner = String(nftData.owner);
-        console.log('owenr:', owner);
+        console.log('nftId', nftId, '--owenr:', owner);
         return owner
     } catch (err) {
         console.log('getNFTOwner err: ', err)
@@ -56,6 +56,7 @@ async function validateAndGetData(data, signature) {
             }
             return returnData
         } else {
+            console.log('invalid owner, nftid:', nftId, '--requesterAddress:', requesterAddress)
             throw new Error('invalid owner')
         }
     } else {

@@ -1,5 +1,7 @@
 # README #
 
+[![Build Status](https://jenkins.ternoa.dev/buildStatus/icon?job=deploy-sgx)](https://jenkins.ternoa.dev/job/deploy-sgx/)
+
 This README would normally document whatever steps are necessary to get your application up and running.
 
 ### What is this repository for? ###

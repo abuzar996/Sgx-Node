@@ -15,7 +15,7 @@ async function getNFTOwner(nftId) {
     try {
         const chainApi = await getChainApiInstance();
         const nftData = await chainApi.query.nfts.data(nftId);
-        safeDisconnectChainApi();
+        // safeDisconnectChainApi(); //no need to disconnect, we can afford 8 socket connection to chain all the time to increase speed of operations
         const owner = String(nftData.owner);
         console.log('owenr:', owner);
         return owner

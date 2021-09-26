@@ -49,5 +49,6 @@ Thumbs.db
 *.wmv
 
 nfts
+keys
 .env
 .history

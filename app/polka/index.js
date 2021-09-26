@@ -10,7 +10,7 @@ require('dotenv').config();
 let api = null;
 console.log('BLOCK_CHAIN_URL', process.env.BLOCK_CHAIN_URL)
 async function getChainApiInstance() {
-
+console.log('api instance')
     if (api && api.isConnected) {
         return api;
     } else {

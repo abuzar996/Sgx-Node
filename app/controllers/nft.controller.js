@@ -1,4 +1,5 @@
 const fs = require('fs');
+const openpgp = require("openpgp");
 const { getChainApiInstance, safeDisconnectChainApi } = require('../polka/index.js');
 const {
     signatureVerify,
@@ -10,6 +11,33 @@ const {
 } = require('@polkadot/util');
 
 const dirPath = './nfts/';
+
+async function _encrypt(data, key) {
+    const encrypted = await openpgp.encrypt({
+        message: openpgp.Message.fromText(data),
+        publicKeys: (await openpgp.readKey({
+            armoredKey: key
+        })),
+    });
+    return encrypted
+}
+
+async function _decrypt(data) {
+    const privateKeyText = fs.readFileSync("../../keys/private.txt");
+    const privateKey = await openpgp.readKey({
+        armoredKey: privateKeyText.toString()
+    })
+    const decrypted = await openpgp.decrypt({
+        message: await openpgp.readMessage({
+            armoredMessage: data
+        })
+            .catch(e => {
+                throw new Error(`openpgp.readMessage error: ${e}`)
+            }),
+        privateKeys: [privateKey],
+    })
+    return decrypted;
+}
 
 async function getNFTOwner(nftId) {
     try {
@@ -66,11 +94,13 @@ async function validateAndGetData(data, signature) {
 }
 
 exports.saveShamir = async (req, res) => {
-    const { signature, data } = req.body;
+    const { sgxData } = req.body;
     const timestamp = new Date().getTime();
     console.time(`saveShamir_${timestamp}`);
 
     try {
+        let decryptedData = await _decrypt(sgxData);
+        const { signature, data } = JSON.parse(decryptedData);
         console.time(`saveShamir_${timestamp}_validateAndGetData`);
         const { nftId, shamir } = await validateAndGetData(data, signature);
         console.timeEnd(`saveShamir_${timestamp}_validateAndGetData`);

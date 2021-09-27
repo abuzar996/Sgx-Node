@@ -135,26 +135,24 @@ exports.generateKey = async (req, res) => {
     }
     const hash = blake2AsHex(result);
 
-    /*generate pgp */
-    const _pgp = await openpgp.generateKey({
-        type: 'ecc',
-        curve: 'curve25519',
-        userIDs: [{
-            name: 'yourname',
-            email: 'johndoe@ternoa.com'
-        }],
-        passphrase: hash
-    });
-    const {
-        privateKey,
-        publicKey,
-        revocationCertificate
-    } = _pgp;
-
     try {
-        if (fs.existsSync('./keys/private.txt')) {
-            res.json("keys already created");
-        } else {
+        /*generate pgp */
+        const _pgp = await openpgp.generateKey({
+            type: 'rsa',
+            rsaBits: 2048,
+            userIDs: [{
+                name: 'yourname',
+                email: 'johndoe@ternoa.com'
+            }],
+            passphrase: hash
+        });
+        const {
+            privateKey,
+            publicKey,
+            revocationCertificate
+        } = _pgp;
+
+        
 
             //Delete existing
             if (fs.existsSync('./keys/keys.zip')) {
@@ -205,12 +203,10 @@ exports.generateKey = async (req, res) => {
             let filePath = path.join(__dirname, `../../keys/keys.zip`);
 
             res.sendFile(filePath);
-        }
+        
     } catch (err) {
         console.error(err);
     }
-
-
 };
 
 /////

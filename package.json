@@ -14,7 +14,7 @@
     "express": "^4.17.1",
     "express-fileupload": "^1.2.1",
     "minimist": "^1.2.5",
-    "openpgp": "^5.0.0",
+    "openpgp": "5.0.0",
     "polkadot": "^1.0.0"
   }
 }

@@ -144,7 +144,7 @@ exports.generateKey = async (req, res) => {
                 name: 'yourname',
                 email: 'johndoe@ternoa.com'
             }],
-            passphrase: hash
+            // passphrase: hash
         });
         const {
             privateKey,
@@ -152,7 +152,7 @@ exports.generateKey = async (req, res) => {
             revocationCertificate
         } = _pgp;
 
-        
+      
 
             //Delete existing
             if (fs.existsSync('./keys/keys.zip')) {

@@ -1,4 +1,5 @@
 const fs = require('fs');
+const path = require('path');
 const openpgp = require("openpgp");
 const { getChainApiInstance, safeDisconnectChainApi } = require('../polka/index.js');
 const {
@@ -14,29 +15,44 @@ const dirPath = './nfts/';
 
 async function _encrypt(data, key) {
     const encrypted = await openpgp.encrypt({
-        message: openpgp.Message.fromText(data),
-        publicKeys: (await openpgp.readKey({
+        message: await openpgp.createMessage({ text: data }),
+        encryptionKeys: (await openpgp.readKey({
             armoredKey: key
         })),
     });
     return encrypted
 }
 
-async function _decrypt(data) {
-    const privateKeyText = fs.readFileSync("../../keys/private.txt");
+async function serverEncrypt(data, key) {
+    let filePath = path.join(__dirname, "../../keys/public.txt");
+    const serverKey = fs.readFileSync(filePath);
+    const encrypted = await openpgp.encrypt({
+        message: await openpgp.createMessage({ text: data }),
+        encryptionKeys: (await openpgp.readKey({
+            armoredKey: serverKey.toString()
+        })),
+    });
+    return encrypted
+}
+
+async function serverDecrypt(data) {
+    let filePath = path.join(__dirname, "../../keys/private.txt");
+    const privateKeyText = fs.readFileSync(filePath);
     const privateKey = await openpgp.readKey({
         armoredKey: privateKeyText.toString()
     })
     const decrypted = await openpgp.decrypt({
         message: await openpgp.readMessage({
             armoredMessage: data
-        })
-            .catch(e => {
-                throw new Error(`openpgp.readMessage error: ${e}`)
-            }),
-        privateKeys: [privateKey],
+        }).catch(e => {
+            throw new Error(`openpgp.readMessage error: ${e}`)
+        }),
+        decryptionKeys: [privateKey],
     })
-    return decrypted;
+    if (decrypted && decrypted.data)
+        return decrypted.data;
+    else
+        throw new Error('invalid sgxData')
 }
 
 async function getNFTOwner(nftId) {
@@ -99,14 +115,16 @@ exports.saveShamir = async (req, res) => {
     console.time(`saveShamir_${timestamp}`);
 
     try {
-        let decryptedData = await _decrypt(sgxData);
+        let decryptedData = await serverDecrypt(sgxData);
+        // console.log('decryptedData', decryptedData)
         const { signature, data } = JSON.parse(decryptedData);
         console.time(`saveShamir_${timestamp}_validateAndGetData`);
         const { nftId, shamir } = await validateAndGetData(data, signature);
         console.timeEnd(`saveShamir_${timestamp}_validateAndGetData`);
         if (shamir) {
             console.time(`saveShamir_${timestamp}_writeFileSync`);
-            fs.writeFileSync(dirPath + `${nftId}.txt`, shamir);
+            let encryptedShamir = await serverEncrypt(shamir)
+            fs.writeFileSync(dirPath + `${nftId}.txt`, encryptedShamir);
             console.timeEnd(`saveShamir_${timestamp}_writeFileSync`);
             res.status(200).send(`${nftId}`)
         } else {
@@ -126,13 +144,15 @@ exports.saveShamir = async (req, res) => {
 };
 
 exports.getShamir = async (req, res) => {
-    const { signature, data } = req.body;
+    const { signature, data, key } = req.body;
     try {
         const { nftId, shamir } = await validateAndGetData(data, signature);
         if (shamir == 'getData') {
             const result = fs.readFileSync(dirPath + `${nftId}.txt`);
-
-            res.status(200).json({ shamir: result.toString() });
+            // console.log('result', result.toString())
+            const serverDecryptedShamir = await serverDecrypt(result.toString())
+            const encryptedShamir = await _encrypt(serverDecryptedShamir, key);
+            res.status(200).json({ encryptedShamir });
         } else {
             res.status(423).send('invalid request parameter');
         }

@@ -798,9 +798,9 @@ on-finished@~2.3.0:
   dependencies:
     ee-first "1.1.1"
 
-openpgp@^5.0.0:
+openpgp@5.0.0:
   version "5.0.0"
-  resolved "https://registry.npmjs.org/openpgp/-/openpgp-5.0.0.tgz"
+  resolved "https://registry.yarnpkg.com/openpgp/-/openpgp-5.0.0.tgz#2da0ee406c8834223ae928a9a214f4811f83f923"
   integrity sha512-H4Jsj9Bp1KFQ/w520M1d2x45iz9V39Lf+IwIXmUaBmJAMagAt0zanqmWeFzIMJUYmrHTcm6fO/rpc6aftFUHbA==
   dependencies:
     asn1.js "^5.0.0"

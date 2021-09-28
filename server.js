@@ -29,13 +29,13 @@ const handleMaster = () => {
     });
 
     (async () => {
-        if (!fs.existsSync('./nfts'))
-            fs.mkdirSync('./nfts');
+        if (!fs.existsSync('/usr/local/sgx-node-nfts'))
+            fs.mkdirSync('/usr/local/sgx-node-nfts');
 
-        if (!fs.existsSync('./keys'))
-            fs.mkdirSync('./keys');
+        if (!fs.existsSync('/usr/local/sgx-node-keys'))
+            fs.mkdirSync('/usr/local/sgx-node-keys');
 
-        if (!fs.existsSync('./keys/private.txt'))
+        if (!fs.existsSync('/usr/local/sgx-node-keys/private.txt'))
             console.warn('generate or download server keys')
 
     })();

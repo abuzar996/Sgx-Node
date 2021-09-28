@@ -11,7 +11,8 @@ const {
     u8aToHex
 } = require('@polkadot/util');
 
-const dirPath = './nfts/';
+const NFTS_DIR_PATH = '/usr/local/sgx-node-nfts/';
+const KEYS_DIR_PATH = '/usr/local/sgx-node-keys/'
 
 async function _encrypt(data, key) {
     const encrypted = await openpgp.encrypt({
@@ -24,7 +25,7 @@ async function _encrypt(data, key) {
 }
 
 async function serverEncrypt(data, key) {
-    let filePath = path.join(__dirname, "../../keys/public.txt");
+    let filePath = KEYS_DIR_PATH + 'public.txt'
     const serverKey = fs.readFileSync(filePath);
     const encrypted = await openpgp.encrypt({
         message: await openpgp.createMessage({ text: data }),
@@ -36,7 +37,7 @@ async function serverEncrypt(data, key) {
 }
 
 async function serverDecrypt(data) {
-    let filePath = path.join(__dirname, "../../keys/private.txt");
+    let filePath = KEYS_DIR_PATH + 'private.txt'
     const privateKeyText = fs.readFileSync(filePath);
     const privateKey = await openpgp.readKey({
         armoredKey: privateKeyText.toString()
@@ -124,7 +125,7 @@ exports.saveShamir = async (req, res) => {
         if (shamir) {
             console.time(`saveShamir_${timestamp}_writeFileSync`);
             let encryptedShamir = await serverEncrypt(shamir)
-            fs.writeFileSync(dirPath + `${nftId}.txt`, encryptedShamir);
+            fs.writeFileSync(NFTS_DIR_PATH + `${nftId}.txt`, encryptedShamir);
             console.timeEnd(`saveShamir_${timestamp}_writeFileSync`);
             res.status(200).send(`${nftId}`)
         } else {
@@ -148,7 +149,7 @@ exports.getShamir = async (req, res) => {
     try {
         const { nftId, shamir } = await validateAndGetData(data, signature);
         if (shamir == 'getData') {
-            const result = fs.readFileSync(dirPath + `${nftId}.txt`);
+            const result = fs.readFileSync(NFTS_DIR_PATH + `${nftId}.txt`);
             // console.log('result', result.toString())
             const serverDecryptedShamir = await serverDecrypt(result.toString())
             const encryptedShamir = await _encrypt(serverDecryptedShamir, key);

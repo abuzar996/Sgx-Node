@@ -13,16 +13,6 @@ module.exports = function(app) {
     '/api/keys/generateKey',
     controller.generateKey
   );
-
-  app.post(
-    '/api/keys/downloadKey',
-    controller.downloadKey
-  );
-  
-  app.post(
-    '/api/keys/uploadKey',
-    controller.uploadKey
-  );
   
   app.get(
     '/api/keys/getPublicKey',

@@ -23,6 +23,7 @@ jobs:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
     - run: npm install
+    - run: touch commit.txt && echo $GITHUB_SHA > commit.txt
     - name: Use Node.js ${{ matrix.node-version }}
       uses: papeloto/action-zip@v1
       with:

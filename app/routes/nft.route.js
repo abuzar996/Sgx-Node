@@ -13,6 +13,11 @@ module.exports = function(app) {
     '/api/nft/saveShamir',
     controller.saveShamir
   );
+
+  app.post(
+    '/api/nft/saveShamirBatch',
+    controller.saveShamirBatch
+  );
   
   app.post(
     '/api/nft/getShamir',

@@ -2,9 +2,7 @@ name: Build SGX Node API
 
 on:
   push:
-    branches: [ main ]
   pull_request:
-    branches: [ main ]
 
 jobs:
   build:

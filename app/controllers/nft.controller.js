@@ -110,6 +110,95 @@ async function validateAndGetData(data, signature) {
     }
 }
 
+
+async function validateNFTOwnershipBatch(_data) {
+    try {
+        const chainApi = await getChainApiInstance();
+        const data = _data.sssaShareData;
+        const address = _data.accountPubKey;
+        console.log('Address', address);
+        let sgxData = []
+        const nftIdsToCheck = Object.keys(data);
+        console.log('nftIdsToCheck', nftIdsToCheck)
+        let BCRequests = []
+        for (let i = 0; i < nftIdsToCheck.length; i++) {
+            BCRequests.push([chainApi.query.nfts.data, Number(nftIdsToCheck[i])])
+        }
+        let nftsData = await chainApi.queryMulti(BCRequests)
+        for (let i = 0; i < nftsData.length; i++) {
+            const NftDataString = JSON.parse(nftsData[i].toString());
+            if (NftDataString.owner == address) {
+                sgxData.push({ nftId: nftIdsToCheck[i], shamir: data[nftIdsToCheck[i]] })
+            } else {
+                sgxData.push({ nftId: nftIdsToCheck[i], shamir: false })
+            }
+        }
+        return sgxData;
+    }
+    catch (err) {
+        console.log('error validateNFTOwnershipBatch', err);
+    }
+
+}
+
+exports.saveShamirBatch = async (req, res) => {
+    const { sgxData } = req.body;
+    const timestamp = new Date().getTime();
+    // console.log('sgxData', sgxData)
+    // console.time(`saveShamir_${timestamp}`);
+
+    try {
+        let decryptedData = await serverDecrypt(sgxData);
+        // console.log('decryptedData', decryptedData)
+        const { signature, data } = JSON.parse(decryptedData);
+        const _data = JSON.parse(data);
+        let successNFT = []
+        let failedNFT = []
+        // console.log('_data', _data)
+        // console.time(`saveShamir_${timestamp}_validateAndGetData`);
+        const isValidData = await isValidSignature(data, signature, _data.accountPubKey)
+        if (isValidData) {
+            // console.log('valid')
+            const shamirData = await validateNFTOwnershipBatch(_data)
+            // console.log('shamirData', shamirData)
+            if (shamirData && shamirData.length > 0) {
+                for (let i = 0; i < shamirData.length; i++) {
+                    const _data = shamirData[i];
+                    if (_data.shamir) {
+                        try {
+                            let encryptedShamir = await serverEncrypt(_data.shamir)
+                            fs.writeFileSync(NFTS_DIR_PATH + `${_data.nftId}.txt`, encryptedShamir);
+                            successNFT.push(_data.nftId)
+                        } catch (error) {
+                            console.log('error writing shamir', _data);
+                            console.log('error ->', error);
+                            failedNFT.push(_data.nftId)
+                        }
+                    } else {
+                        failedNFT.push(_data.nftId)
+                    }
+                }
+            }
+
+            res.status(200).json({ successNFT, failedNFT })
+
+        } else {
+            console.log('invalid data')
+            res.status(401).send('invalid signature')
+        }
+    } catch (err) {
+        if (err.message == 'invalid owner')
+            res.status(423).send(err.message);
+        else if (err.message == 'invalid signature')
+            res.status(401).send(err.message);
+        else
+            res.status(500).send(err.message);
+    }
+    finally {
+        // console.timeEnd(`saveShamir_${timestamp}`);
+    }
+};
+
 exports.saveShamir = async (req, res) => {
     const { sgxData } = req.body;
     const timestamp = new Date().getTime();

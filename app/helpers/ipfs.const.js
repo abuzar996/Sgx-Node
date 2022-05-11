@@ -1,4 +1,5 @@
 const ipfsNodes = {
+    
     ternoaIpfsBaseUrl: `https://ipfs.ternoa.dev`
 }
 const ipfsBaseUrl = process.env.IPFS_BASEURL || ipfsNodes.ternoaIpfsBaseUrl;
